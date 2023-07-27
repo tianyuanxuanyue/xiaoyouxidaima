@@ -1,0 +1,85 @@
+import random
+import os
+
+# 游戏设置
+SCREEN_WIDTH = 50
+SCREEN_HEIGHT = 20
+PLAYER_CHAR = 'O'
+ENEMY_CHAR = 'X'
+BULLET_CHAR = '|'
+ENEMY_SPEED = 1
+PLAYER_START_X = SCREEN_WIDTH // 2
+PLAYER_START_Y = SCREEN_HEIGHT - 2
+SCORE_PER_ENEMY = 10
+
+class Game:
+    def __init__(self):
+        self.player_x = PLAYER_START_X
+        self.player_y = PLAYER_START_Y
+        self.enemies = []
+        self.score = 0
+        self.is_game_over = False
+
+    def spawn_enemy(self):
+        enemy_x = random.randint(1, SCREEN_WIDTH - 2)
+        enemy_y = 1
+        self.enemies.append((enemy_x, enemy_y))
+
+    def draw(self):
+        os.system('cls' if os.name == 'nt' else 'clear')  # 清空屏幕
+        for y in range(SCREEN_HEIGHT):
+            for x in range(SCREEN_WIDTH):
+                if y == self.player_y and x == self.player_x:
+                    print(PLAYER_CHAR, end='')
+                elif (x, y) in self.enemies:
+                    print(ENEMY_CHAR, end='')
+                else:
+                    print(' ', end='')
+            print()
+
+        print(f"Score: {self.score}")
+
+    def update(self):
+        # 移动敌人
+        for i in range(len(self.enemies) - 1, -1, -1):
+            x, y = self.enemies[i]
+            self.enemies[i] = (x, y + ENEMY_SPEED)
+            if y + ENEMY_SPEED >= SCREEN_HEIGHT - 1:
+                self.is_game_over = True
+
+        # 检查敌人是否被击中
+        for bullet_x, bullet_y in bullets:
+            for i in range(len(self.enemies) - 1, -1, -1):
+                enemy_x, enemy_y = self.enemies[i]
+                if enemy_x == bullet_x and enemy_y == bullet_y:
+                    self.score += SCORE_PER_ENEMY
+                    self.enemies.pop(i)
+                    bullets.remove((bullet_x, bullet_y))
+                    break
+
+    def handle_input(self, key):
+        if key == 'a' and self.player_x > 1:
+            self.player_x -= 1
+        elif key == 'd' and self.player_x < SCREEN_WIDTH - 2:
+            self.player_x += 1
+        elif key == 'w' and self.player_y > 1:
+            self.player_y -= 1
+        elif key == 's' and self.player_y < SCREEN_HEIGHT - 2:
+            self.player_y += 1
+        elif key == ' ':
+            bullets.append((self.player_x, self.player_y - 1))
+
+# 游戏循环
+def main():
+    game = Game()
+    while not game.is_game_over:
+        game.draw()
+        game.update()
+        key = input("输入wasd控制移动，空格键射击，按回车继续...")
+        game.handle_input(key.lower())
+
+    print(f"游戏结束！您的得分是：{game.score}")
+
+if __name__ == "__main__":
+    bullets = []
+    main()
